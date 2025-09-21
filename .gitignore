@@ -1,0 +1,33 @@
+# Build directories
+build/
+bin/
+lib/
+
+# IDE files
+.vscode/
+.vs/
+*.user
+*.vcxproj.user
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Executables
+*.exe
+*.out
+*.app
+TerrainSimulator
+TerrainSimulatorBasic
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# OS specific
+.DS_Store
+Thumbs.db
