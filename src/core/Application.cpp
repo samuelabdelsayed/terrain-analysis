@@ -67,7 +67,8 @@ void SetLookAt(float eyeX, float eyeY, float eyeZ,
 
 Application::Application() 
     : m_window(nullptr), m_isRunning(false), m_lastFrameTime(0.0f),
-      m_lastMouseX(640), m_lastMouseY(360), m_firstMouse(true) {
+      m_lastMouseX(640), m_lastMouseY(360), m_firstMouse(true),
+      m_lastCommand(""), m_commandFeedbackTimer(0.0f), m_commandExecutionCount(0) {
     
     std::memset(m_keys, 0, sizeof(m_keys));
 }
@@ -162,17 +163,23 @@ bool Application::Initialize() {
     std::cout << "  Space: Start/Pause simulation" << std::endl;
     std::cout << "  R: Reset simulation" << std::endl;
     std::cout << "  ESC: Exit safely" << std::endl;
+    std::cout << "\n� BLUE FORCE OPERATOR COMMANDS:" << std::endl;
+    std::cout << "  1: Advance and secure area" << std::endl;
+    std::cout << "  2: Take defensive positions" << std::endl;
+    std::cout << "  3: Begin patrol operations" << std::endl;
+    std::cout << "  4: Withdraw to rally point" << std::endl;
+    std::cout << "  5: Reconnaissance mode" << std::endl;
     std::cout << "\n🚀 Enhanced Features:" << std::endl;
-    std::cout << "  📊  Professional entity symbols" << std::endl;
-    std::cout << "  🗻  High-resolution terrain with realistic colors" << std::endl;
-    std::cout << "  �  Military-grade contour mapping" << std::endl;
-    std::cout << "  �  Interactive 3D navigation" << std::endl;
-    std::cout << "\n💡 INTERACTION TIPS:" << std::endl;
-    std::cout << "  • Press TAB to capture mouse and look around" << std::endl;
-    std::cout << "  • Use arrow keys to move around the terrain" << std::endl;
-    std::cout << "  • Page Up/Down to change elevation" << std::endl;
-    std::cout << "  • Space to start/pause unit simulation" << std::endl;
-    std::cout << "  • R to reset and generate new terrain" << std::endl;
+    std::cout << "  📊  3D contoured grid terrain (no white mesh)" << std::endl;
+    std::cout << "  🧠  AI learning and strategy adaptation" << std::endl;
+    std::cout << "  🔵  Interactive blue force command and control" << std::endl;
+    std::cout << "  🎯  Real-time tactical decision making" << std::endl;
+    std::cout << "\n💡 OPERATOR GUIDANCE:" << std::endl;
+    std::cout << "  • YOU command the BLUE forces (rectangles)" << std::endl;
+    std::cout << "  • RED forces are AI-controlled (diamonds)" << std::endl;
+    std::cout << "  • Use keys 1-5 to give tactical orders" << std::endl;
+    std::cout << "  • Watch blue units respond to your commands" << std::endl;
+    std::cout << "  • AI will counter your moves with red forces" << std::endl;
     
     m_isRunning = true;
     return true;
@@ -209,6 +216,11 @@ void Application::Update(float deltaTime) {
         
         if (m_aiSystem) {
             m_aiSystem->Update(deltaTime);
+        }
+        
+        // Update command feedback timer
+        if (m_commandFeedbackTimer > 0.0f) {
+            m_commandFeedbackTimer -= deltaTime;
         }
         
         // Print status every 10 seconds
@@ -253,73 +265,60 @@ void Application::Render() {
                   0.0f, 1.0f, 0.0f);
     }
     
-    // Render terrain with enhanced graphics
+    // Render 3D contoured grid terrain (NO white mesh, NO orange contours)
     if (m_terrainEngine && m_terrainEngine->IsLoaded()) {
         try {
-            // Render base terrain mesh
-            m_terrainEngine->Render();
+            // COMPLETELY SKIP the white terrain mesh rendering
+            // m_terrainEngine->Render(); // DISABLED!
             
-            // Now render military-grade overlays on top
+            // Render ONLY the 3D contoured green grid
             glDisable(GL_LIGHTING);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             
-            // Render coordinate grid system
-            glColor4f(0.2f, 0.5f, 0.1f, 0.7f);
-            glLineWidth(0.8f);
-            glBegin(GL_LINES);
-            for (int i = -32; i <= 32; i += 4) {
-                float pos = i * 4.0f;
-                glVertex3f(-128, 5, pos); glVertex3f(128, 5, pos);
-                glVertex3f(pos, 5, -128); glVertex3f(pos, 5, 128);
-            }
-            glEnd();
+            // Simple, clean 3D grid that follows terrain elevation (no chaotic contours)
+            const int gridSize = 100;
+            const int gridSpacing = 10;
             
-            // Major grid lines
-            glColor4f(0.1f, 0.8f, 0.2f, 0.8f);
-            glLineWidth(1.5f);
-            glBegin(GL_LINES);
-            for (int i = -32; i <= 32; i += 16) {
-                float pos = i * 4.0f;
-                glVertex3f(-128, 6, pos); glVertex3f(128, 6, pos);
-                glVertex3f(pos, 6, -128); glVertex3f(pos, 6, 128);
-            }
-            glEnd();
+            // Clean grid lines that follow terrain elevation
+            glLineWidth(1.0f);
+            glColor4f(0.0f, 0.7f, 0.0f, 0.8f);
             
-            // Professional contour lines - much less dense
-            for (int elevation = 10; elevation <= 100; elevation += 10) {
-                if (elevation % 50 == 0) {
-                    // Index contours (every 50m) - thick brown
-                    glColor4f(0.6f, 0.3f, 0.1f, 0.8f);
-                    glLineWidth(2.5f);
-                } else if (elevation % 25 == 0) {
-                    // Intermediate contours (every 25m) - medium brown
-                    glColor4f(0.5f, 0.25f, 0.1f, 0.7f);
-                    glLineWidth(2.0f);
-                } else {
-                    // Minor contours (every 10m) - light brown
-                    glColor4f(0.4f, 0.2f, 0.1f, 0.6f);
-                    glLineWidth(1.5f);
-                }
-                
-                // Simple, readable contour shapes
+            // Horizontal grid lines
+            for (int x = -gridSize; x <= gridSize; x += gridSpacing) {
                 glBegin(GL_LINE_STRIP);
-                for (int angle = 0; angle <= 360; angle += 6) {
-                    float rad = angle * M_PI / 180.0f;
-                    float radius = 30.0f + elevation * 0.8f + sin(rad * 2) * 8.0f;
-                    float x = cos(rad) * radius + sin(elevation * 0.02f) * 15.0f;
-                    float z = sin(rad) * radius + cos(elevation * 0.03f) * 12.0f;
-                    float y = elevation * 0.7f + 10.0f;
-                    glVertex3f(x, y, z);
+                for (int z = -gridSize; z <= gridSize; z += gridSpacing) {
+                    float elevation = m_terrainEngine->GetElevationAt(x, z);
+                    glVertex3f(x, elevation * 0.5f + 2.0f, z);
                 }
                 glEnd();
             }
             
-            glDisable(GL_BLEND);
+            // Vertical grid lines
+            for (int z = -gridSize; z <= gridSize; z += gridSpacing) {
+                glBegin(GL_LINE_STRIP);
+                for (int x = -gridSize; x <= gridSize; x += gridSpacing) {
+                    float elevation = m_terrainEngine->GetElevationAt(x, z);
+                    glVertex3f(x, elevation * 0.5f + 2.0f, z);
+                }
+                glEnd();
+            }
+            
+            // Simple coordinate reference lines
+            glColor4f(0.0f, 0.5f, 0.0f, 0.6f);
+            glLineWidth(1.5f);
+            glBegin(GL_LINES);
+            // Main axes
+            glVertex3f(-gridSize, 1, 0); glVertex3f(gridSize, 1, 0);
+            glVertex3f(0, 1, -gridSize); glVertex3f(0, 1, gridSize);
+            glEnd();
+            
+            // NO MORE CHAOTIC CONTOURS - Keep it simple and clean
+            
             glEnable(GL_LIGHTING);
             
         } catch (const std::exception& e) {
-            std::cerr << "Error rendering terrain: " << e.what() << std::endl;
+            std::cerr << "Error rendering 3D grid: " << e.what() << std::endl;
         }
     } else {
         // Draw military-grade topographical map with detailed contours
@@ -355,83 +354,7 @@ void Application::Render() {
         }
         glEnd();
         
-        // Detailed elevation contour lines (military standard)
-        glLineWidth(1.5f);
-        for (int elevation = 5; elevation <= 100; elevation += 5) {
-            if (elevation % 25 == 0) {
-                // Index contours (every 25m) in thick brown
-                glColor3f(0.6f, 0.3f, 0.1f);
-                glLineWidth(2.5f);
-            } else if (elevation % 10 == 0) {
-                // Intermediate contours (every 10m) in medium brown
-                glColor3f(0.5f, 0.35f, 0.15f);
-                glLineWidth(2.0f);
-            } else {
-                // Supplementary contours (every 5m) in light brown
-                glColor3f(0.4f, 0.3f, 0.2f);
-                glLineWidth(1.5f);
-            }
-            
-            // Draw realistic terrain contours
-            glBegin(GL_LINE_STRIP);
-            for (int angle = 0; angle <= 360; angle += 5) {
-                float rad = angle * M_PI / 180.0f;
-                float radius = 40.0f + elevation * 1.2f + sin(rad * 3) * 8.0f + cos(rad * 5) * 4.0f;
-                float x = cos(rad) * radius + sin(elevation * 0.1f) * 15.0f;
-                float z = sin(rad) * radius + cos(elevation * 0.15f) * 12.0f;
-                glVertex3f(x, elevation * 0.8f, z);
-            }
-            glEnd();
-            
-            // Add secondary contour patterns for complex terrain
-            if (elevation % 15 == 0) {
-                glBegin(GL_LINE_STRIP);
-                for (int angle = 0; angle <= 360; angle += 8) {
-                    float rad = angle * M_PI / 180.0f;
-                    float radius = 60.0f + elevation * 0.8f + sin(rad * 2) * 10.0f;
-                    float x = cos(rad) * radius - 30.0f + cos(elevation * 0.2f) * 10.0f;
-                    float z = sin(rad) * radius + 25.0f + sin(elevation * 0.18f) * 8.0f;
-                    glVertex3f(x, elevation * 0.8f, z);
-                }
-                glEnd();
-            }
-        }
-        
-        // Draw depression contours (hachured lines for valleys)
-        glColor3f(0.3f, 0.2f, 0.1f);
-        glLineWidth(1.0f);
-        for (int depression = -5; depression >= -25; depression -= 5) {
-            glBegin(GL_LINE_STRIP);
-            for (int angle = 0; angle <= 360; angle += 10) {
-                float rad = angle * M_PI / 180.0f;
-                float radius = 25.0f - depression * 0.5f;
-                float x = cos(rad) * radius + 50.0f;
-                float z = sin(rad) * radius - 40.0f;
-                glVertex3f(x, depression * 0.3f, z);
-                
-                // Add hachure marks pointing downhill
-                if (angle % 30 == 0) {
-                    glEnd();
-                    glBegin(GL_LINES);
-                    glVertex3f(x, depression * 0.3f, z);
-                    glVertex3f(x + cos(rad) * 3.0f, depression * 0.3f - 1.0f, z + sin(rad) * 3.0f);
-                    glEnd();
-                    glBegin(GL_LINE_STRIP);
-                    glVertex3f(x, depression * 0.3f, z);
-                }
-            }
-            glEnd();
-        }
-        
-        // Add spot elevation markers
-        glColor3f(0.8f, 0.4f, 0.1f);
-        glPointSize(4.0f);
-        glBegin(GL_POINTS);
-        glVertex3f(45.0f, 32.0f, -15.0f);  // Hill peak
-        glVertex3f(-35.0f, 28.0f, 40.0f);  // Secondary peak
-        glVertex3f(15.0f, 18.0f, 65.0f);   // Ridge point
-        glVertex3f(-60.0f, 12.0f, -25.0f); // Saddle point
-        glEnd();
+        // NO MORE BROWN/ORANGE CONTOURS - All visualization is now green 3D grid only
         
         glEnable(GL_LIGHTING);
     }
@@ -449,10 +372,61 @@ void Application::Render() {
             
             for (const auto& unit : units) {
                 if (unit && unit->IsActive()) {
-                    // Add glow effect around symbols
                     glm::vec3 pos = unit->GetPosition();
+                    
+                    // Enhanced visual feedback for units executing commands
+                    if (unit->HasActiveCommand()) {
+                        // Bright pulsing outline for units with active commands
+                        float pulse = 0.7f + 0.3f * sin(glfwGetTime() * 8.0f);
+                        if (unit->IsAllied()) {
+                            glColor4f(0.0f, 1.0f, 1.0f, pulse); // Cyan for blue force commands
+                        } else {
+                            glColor4f(1.0f, 0.5f, 0.0f, pulse); // Orange for red force
+                        }
+                        glLineWidth(10.0f);
+                        EntitySymbols::RenderUnitSymbol(*unit);
+                        
+                        // Command-specific visual indicators above unit
+                        std::string activeCmd = unit->GetActiveCommand();
+                        glLineWidth(3.0f);
+                        glPushMatrix();
+                        glTranslatef(pos.x, pos.y + 8.0f, pos.z);
+                        
+                        if (activeCmd == "ADVANCING") {
+                            glColor4f(0.0f, 1.0f, 0.0f, pulse); // Green arrow
+                            glBegin(GL_TRIANGLES);
+                            glVertex3f(0, 0, 2); glVertex3f(-1, 0, 0); glVertex3f(1, 0, 0);
+                            glEnd();
+                        } else if (activeCmd == "DEFENDING") {
+                            glColor4f(1.0f, 1.0f, 0.0f, pulse); // Yellow shield
+                            glBegin(GL_LINE_LOOP);
+                            glVertex3f(0, 0, 1); glVertex3f(-1, 0, 0); glVertex3f(0, 0, -1); glVertex3f(1, 0, 0);
+                            glEnd();
+                        } else if (activeCmd == "PATROLLING") {
+                            glColor4f(0.0f, 0.5f, 1.0f, pulse); // Blue circle
+                            glBegin(GL_LINE_LOOP);
+                            for (int i = 0; i < 12; i++) {
+                                float angle = i * M_PI / 6.0f;
+                                glVertex3f(cos(angle), 0, sin(angle));
+                            }
+                            glEnd();
+                        } else if (activeCmd == "WITHDRAWING") {
+                            glColor4f(1.0f, 0.5f, 0.0f, pulse); // Orange retreat arrow
+                            glBegin(GL_TRIANGLES);
+                            glVertex3f(0, 0, -2); glVertex3f(-1, 0, 0); glVertex3f(1, 0, 0);
+                            glEnd();
+                        } else if (activeCmd == "RECON") {
+                            glColor4f(1.0f, 0.0f, 1.0f, pulse); // Magenta eye
+                            glBegin(GL_LINE_LOOP);
+                            glVertex3f(-1, 0, 0); glVertex3f(0, 0, 1); glVertex3f(1, 0, 0); glVertex3f(0, 0, -1);
+                            glEnd();
+                        }
+                        glPopMatrix();
+                    }
+                    
+                    // Standard glow effect around symbols
                     glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-                    glLineWidth(8.0f);
+                    glLineWidth(6.0f);
                     EntitySymbols::RenderUnitSymbol(*unit);
                     
                     // Render main symbol
@@ -463,6 +437,99 @@ void Application::Render() {
             
             glDisable(GL_BLEND);
             glEnable(GL_LIGHTING);
+            
+            // Render visual command feedback
+            if (m_commandFeedbackTimer > 0.0f && !m_lastCommand.empty()) {
+                glDisable(GL_LIGHTING);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                
+                // Calculate fade effect
+                float alpha = m_commandFeedbackTimer / 3.0f;
+                
+                // Draw command feedback in the center of screen (HUD style)
+                glMatrixMode(GL_PROJECTION);
+                glPushMatrix();
+                glLoadIdentity();
+                glOrtho(0, 1280, 720, 0, -1, 1);  // Screen coordinates
+                glMatrixMode(GL_MODELVIEW);
+                glPushMatrix();
+                glLoadIdentity();
+                
+                // Bright cyan background for command feedback
+                glColor4f(0.0f, 1.0f, 1.0f, alpha * 0.8f);
+                glBegin(GL_QUADS);
+                glVertex2f(400, 50);
+                glVertex2f(880, 50);
+                glVertex2f(880, 120);
+                glVertex2f(400, 120);
+                glEnd();
+                
+                // Command text outline
+                glColor4f(0.0f, 0.0f, 0.0f, alpha);
+                glLineWidth(3.0f);
+                glBegin(GL_LINE_LOOP);
+                glVertex2f(400, 50);
+                glVertex2f(880, 50);
+                glVertex2f(880, 120);
+                glVertex2f(400, 120);
+                glEnd();
+                
+                // Visual indicators for command type
+                if (m_lastCommand == "ADVANCE") {
+                    glColor4f(0.0f, 1.0f, 0.0f, alpha);  // Green
+                    // Draw arrow pointing forward
+                    glBegin(GL_TRIANGLES);
+                    glVertex2f(420, 85);
+                    glVertex2f(450, 70);
+                    glVertex2f(450, 100);
+                    glEnd();
+                } else if (m_lastCommand == "DEFEND") {
+                    glColor4f(1.0f, 1.0f, 0.0f, alpha);  // Yellow
+                    // Draw shield shape
+                    glBegin(GL_POLYGON);
+                    glVertex2f(435, 70);
+                    glVertex2f(420, 85);
+                    glVertex2f(435, 100);
+                    glVertex2f(450, 85);
+                    glEnd();
+                } else if (m_lastCommand == "PATROL") {
+                    glColor4f(0.0f, 0.5f, 1.0f, alpha);  // Blue
+                    // Draw circular patrol indicator
+                    glBegin(GL_LINE_STRIP);
+                    for (int i = 0; i <= 360; i += 30) {
+                        float rad = i * M_PI / 180.0f;
+                        glVertex2f(435 + cos(rad) * 15, 85 + sin(rad) * 15);
+                    }
+                    glEnd();
+                } else if (m_lastCommand == "WITHDRAW") {
+                    glColor4f(1.0f, 0.5f, 0.0f, alpha);  // Orange
+                    // Draw arrow pointing back
+                    glBegin(GL_TRIANGLES);
+                    glVertex2f(450, 85);
+                    glVertex2f(420, 70);
+                    glVertex2f(420, 100);
+                    glEnd();
+                } else if (m_lastCommand == "RECON") {
+                    glColor4f(1.0f, 0.0f, 1.0f, alpha);  // Magenta
+                    // Draw eye shape
+                    glBegin(GL_LINE_LOOP);
+                    glVertex2f(420, 85);
+                    glVertex2f(435, 75);
+                    glVertex2f(450, 85);
+                    glVertex2f(435, 95);
+                    glEnd();
+                }
+                
+                // Restore matrices
+                glPopMatrix();
+                glMatrixMode(GL_PROJECTION);
+                glPopMatrix();
+                glMatrixMode(GL_MODELVIEW);
+                
+                glDisable(GL_BLEND);
+                glEnable(GL_LIGHTING);
+            }
             glLineWidth(1.0f);
             
         } catch (const std::exception& e) {
@@ -535,7 +602,22 @@ void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int act
         } else if (key == GLFW_KEY_R && app->m_simulationEngine) {
             app->m_simulationEngine->Reset();
             app->m_simulationEngine->Initialize();
-            std::cout << "🔄 Simulation reset with new units" << std::endl;
+            std::cout << "🔄 Simulation reset with new scenario" << std::endl;
+        } else if (key == GLFW_KEY_1) {
+            std::cout << "🔵 BLUE FORCE COMMAND: Advance and secure area" << std::endl;
+            app->CommandBlueForces("ADVANCE");
+        } else if (key == GLFW_KEY_2) {
+            std::cout << "🔵 BLUE FORCE COMMAND: Take defensive positions" << std::endl;
+            app->CommandBlueForces("DEFEND");
+        } else if (key == GLFW_KEY_3) {
+            std::cout << "🔵 BLUE FORCE COMMAND: Begin patrol operations" << std::endl;
+            app->CommandBlueForces("PATROL");
+        } else if (key == GLFW_KEY_4) {
+            std::cout << "🔵 BLUE FORCE COMMAND: Withdraw to rally point" << std::endl;
+            app->CommandBlueForces("WITHDRAW");
+        } else if (key == GLFW_KEY_5) {
+            std::cout << "🔵 BLUE FORCE COMMAND: Reconnaissance mode" << std::endl;
+            app->CommandBlueForces("RECON");
         }
     } else if (action == GLFW_RELEASE) {
         app->m_keys[key] = false;
@@ -571,6 +653,83 @@ void Application::Shutdown() {
     
     glfwTerminate();
     std::cout << "Shutdown complete" << std::endl;
+}
+
+void Application::CommandBlueForces(const std::string& command) {
+    if (!m_simulationEngine) {
+        std::cout << "⚠️  No simulation engine available for blue force commands" << std::endl;
+        return;
+    }
+    
+    std::cout << "🔵 EXECUTING BLUE FORCE COMMAND: " << command << std::endl;
+    
+    // Set visual feedback variables
+    m_lastCommand = command;
+    m_commandFeedbackTimer = 3.0f; // Show feedback for 3 seconds
+    m_commandExecutionCount++;
+    
+    // Get all units from simulation
+    auto units = m_simulationEngine->GetAllUnits();
+    int blueUnitsAffected = 0;
+    
+    for (auto& unit : units) {
+        // Only command blue/allied units
+        if (unit->IsAllied()) {
+            
+            if (command == "ADVANCE") {
+                // Move toward center/objective
+                unit->SetTargetPosition(glm::vec3(10.0f, 0.0f, 10.0f));
+                unit->SetMovementSpeed(2.5f); // Faster movement
+                unit->SetActiveCommand("ADVANCING", 4.0f); // Visual feedback for 4 seconds
+                std::cout << "  ➡️  " << unit->GetTypeString() << " advancing to objective" << std::endl;
+                
+            } else if (command == "DEFEND") {
+                // Hold current position with defensive stance
+                auto currentPos = unit->GetPosition();
+                unit->SetTargetPosition(currentPos); // Stay in place
+                unit->SetMovementSpeed(0.8f); // Slower, cautious movement
+                unit->SetActiveCommand("DEFENDING", 4.0f); // Visual feedback
+                std::cout << "  🛡️  " << unit->GetTypeString() << " taking defensive position" << std::endl;
+                
+            } else if (command == "PATROL") {
+                // Begin patrol pattern around current area
+                auto currentPos = unit->GetPosition();
+                float patrolRadius = 25.0f;
+                glm::vec3 patrolTarget = currentPos + glm::vec3(
+                    sin(glfwGetTime() + unit->GetId()) * patrolRadius,
+                    0.0f,
+                    cos(glfwGetTime() + unit->GetId()) * patrolRadius
+                );
+                unit->SetTargetPosition(patrolTarget);
+                unit->SetMovementSpeed(1.8f); // Normal patrol speed
+                unit->SetActiveCommand("PATROLLING", 4.0f); // Visual feedback
+                std::cout << "  🔄  " << unit->GetTypeString() << " beginning patrol operations" << std::endl;
+                
+            } else if (command == "WITHDRAW") {
+                // Move to safe rally point (back corner)
+                unit->SetTargetPosition(glm::vec3(-40.0f, 0.0f, -40.0f));
+                unit->SetMovementSpeed(3.0f); // Fast withdrawal
+                unit->SetActiveCommand("WITHDRAWING", 4.0f); // Visual feedback
+                std::cout << "  ⬅️  " << unit->GetTypeString() << " withdrawing to rally point" << std::endl;
+                
+            } else if (command == "RECON") {
+                // Scout ahead toward enemy positions
+                unit->SetTargetPosition(glm::vec3(50.0f, 0.0f, 30.0f));
+                unit->SetMovementSpeed(1.2f); // Slow, stealthy movement
+                unit->SetActiveCommand("RECON", 4.0f); // Visual feedback
+                std::cout << "  🔍  " << unit->GetTypeString() << " conducting reconnaissance" << std::endl;
+            }
+            
+            blueUnitsAffected++;
+        }
+    }
+    
+    std::cout << "✅ Command executed - " << blueUnitsAffected << " blue force units received orders" << std::endl;
+    
+    // Notify AI system that player has issued commands
+    if (m_aiSystem) {
+        m_aiSystem->ReactToPlayerCommand(command);
+    }
 }
 
 }

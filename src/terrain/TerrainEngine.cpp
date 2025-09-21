@@ -4,6 +4,7 @@
 #include <cmath>
 #include <algorithm>
 #include <random>
+#include <ctime>
 
 namespace TS {
 
@@ -156,27 +157,43 @@ void TerrainEngine::GenerateRandomTerrain(int width, int height) {
     m_height = height;
     m_heightData.resize(width * height);
     
+    // Enhanced randomization - ensure different terrain each launch
     std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dis(-5.0f, 25.0f);
+    auto seed = rd() ^ static_cast<unsigned>(std::time(nullptr));
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<float> dis(-8.0f, 35.0f);
+    std::uniform_real_distribution<float> feature_dis(0.6f, 1.4f);
+    
+    // Randomize terrain characteristics each launch
+    float base_amplitude = 35.0f + dis(gen) * 0.3f;
+    float base_frequency = 0.006f + (rd() % 1000) * 0.000003f;
+    float terrain_complexity = 0.5f + feature_dis(gen) * 0.5f;
+    
+    std::cout << "🌍 Terrain variation: amplitude=" << base_amplitude 
+              << ", frequency=" << base_frequency 
+              << ", complexity=" << terrain_complexity << std::endl;
     
     // Generate much more detailed heightmap with multiple octaves
     for (int z = 0; z < height; ++z) {
         for (int x = 0; x < width; ++x) {
             float height_val = 0.0f;
             
-            // Primary terrain features
-            float amplitude = 40.0f;
-            float frequency = 0.008f;
+            // Primary terrain features with randomized parameters
+            float amplitude = base_amplitude;
+            float frequency = base_frequency;
             
-            // Generate more moderate heightmap with better proportions
-            for (int octave = 0; octave < 4; ++octave) {
+            // Generate varied terrain with randomized characteristics
+            for (int octave = 0; octave < 5; ++octave) {
                 float sample_x = x * frequency;
                 float sample_z = z * frequency;
                 
-                // Moderate terrain generation
-                height_val += sin(sample_x) * cos(sample_z) * amplitude;
-                height_val += cos(sample_x * 1.2f) * sin(sample_z * 0.8f) * amplitude * 0.6f;
+                // Enhanced terrain generation with more variation
+                height_val += sin(sample_x * terrain_complexity) * cos(sample_z) * amplitude;
+                height_val += cos(sample_x * 1.3f) * sin(sample_z * 0.9f * terrain_complexity) * amplitude * 0.7f;
+                height_val += sin(sample_x * 2.1f + terrain_complexity) * amplitude * 0.4f;
+                
+                // Add randomized noise for unique terrain each time
+                height_val += (dis(gen) * 0.1f) * amplitude * 0.2f;
                 
                 amplitude *= 0.5f;
                 frequency *= 2.0f;

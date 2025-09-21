@@ -1,6 +1,7 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include <memory>
+#include <string>
 
 namespace TS {
 
@@ -27,6 +28,11 @@ class Application {
     double m_lastMouseX, m_lastMouseY;
     bool m_firstMouse;
     
+    // Visual feedback for operator commands
+    std::string m_lastCommand;
+    float m_commandFeedbackTimer;
+    int m_commandExecutionCount;
+    
 public:
     Application();
     ~Application();
@@ -38,6 +44,8 @@ public:
     void HandleInput();
     void ProcessKeyboard(float deltaTime);
     void ProcessMouse(double xpos, double ypos);
+    void CommandBlueForces(const std::string& command);
+    void RenderContoured3DGrid();
     
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
     static void MouseCallback(GLFWwindow* window, double xpos, double ypos);

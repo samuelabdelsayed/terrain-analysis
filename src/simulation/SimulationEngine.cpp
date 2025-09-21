@@ -14,16 +14,30 @@ SimulationEngine::~SimulationEngine() {
 }
 
 void SimulationEngine::Initialize() {
-    std::cout << "Initializing Simulation Engine..." << std::endl;
+    std::cout << "🎮 Initializing Dynamic Simulation Engine..." << std::endl;
     Reset();
     
-    // Create demo units safely
-    AddUnit(UnitType::PERSONNEL, glm::vec3(-100, 0, -100), true);
-    AddUnit(UnitType::VEHICLE, glm::vec3(-80, 0, -100), true);
-    AddUnit(UnitType::PERSONNEL, glm::vec3(100, 0, 100), false);
-    AddUnit(UnitType::VEHICLE, glm::vec3(80, 0, 100), false);
+    // Create initial scenario with strategic positioning
+    CreateScenario("Border Patrol");
     
-    std::cout << "Simulation initialized with " << m_units.size() << " units" << std::endl;
+    std::cout << "🎯 Dynamic simulation initialized with " << m_units.size() << " units" << std::endl;
+    std::cout << "📊 Scenario: Active patrol and reconnaissance mission" << std::endl;
+}
+
+void SimulationEngine::CreateScenario(const std::string& scenarioName) {
+    std::cout << "🎬 Creating scenario: " << scenarioName << std::endl;
+    
+    if (scenarioName == "Border Patrol") {
+        // Allied patrol formation
+        AddUnit(UnitType::PERSONNEL, glm::vec3(-80, 0, -80), true);
+        AddUnit(UnitType::VEHICLE, glm::vec3(-60, 0, -100), true);
+        AddUnit(UnitType::SENSOR, glm::vec3(-100, 0, -60), true);
+        
+        // Opposition reconnaissance
+        AddUnit(UnitType::PERSONNEL, glm::vec3(70, 0, 90), false);
+        AddUnit(UnitType::VEHICLE, glm::vec3(90, 0, 70), false);
+        AddUnit(UnitType::EQUIPMENT, glm::vec3(110, 0, 110), false);
+    }
 }
 
 void SimulationEngine::Update(float deltaTime) {

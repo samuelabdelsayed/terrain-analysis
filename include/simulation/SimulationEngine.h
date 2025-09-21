@@ -32,6 +32,7 @@ public:
     void Pause() { m_state = SimulationState::PAUSED; }
     void Stop() { m_state = SimulationState::STOPPED; }
     
+    void CreateScenario(const std::string& scenarioName);
     int AddUnit(UnitType type, const glm::vec3& position, bool isAllied = true);
     Unit* GetUnit(int unitId);
     std::vector<Unit*> GetAllUnits() const;
