@@ -2,7 +2,7 @@
 
 echo "=== Building Enhanced Terrain Simulator ==="
 
-mkdir -p build
+mk        echo "Enhanced terrain simulator with strategic features! 🚀"ir -p build
 cd build
 
 if command -v clang++ &> /dev/null; then
@@ -57,7 +57,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo ""
         echo "🚀 Features:"
         echo "   �️  Dynamic terrain generation with realistic slopes"
-        echo "   🎯  Tactical simulation with engagement detection"
+        echo "   🎯  Strategic simulation with contact detection"
         echo "   �  Audio feedback and sound effects"
         echo "   ⚡  Speed controls for simulation pacing"
         echo "   🤖  AI opponent with reactive behavior"

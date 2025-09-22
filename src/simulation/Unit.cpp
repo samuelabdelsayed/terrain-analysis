@@ -143,12 +143,12 @@ void Unit::Update(float deltaTime) {
         m_commandFeedbackTimer -= deltaTime;
     }
     
-    // Simulate combat interactions
-    static float combatTimer = 0.0f;
-    combatTimer += deltaTime;
-    if (combatTimer > 8.0f) {
-        combatTimer = 0.0f;
-        // Simulate taking some damage in combat scenarios
+    // Simulate interaction scenarios
+    static float interactionTimer = 0.0f;
+    interactionTimer += deltaTime;
+    if (interactionTimer > 8.0f) {
+        interactionTimer = 0.0f;
+        // Simulate taking some damage in interaction scenarios
         if (rand() % 100 < 5) { // 5% chance
             TakeDamage(5.0f);
         }
@@ -207,25 +207,25 @@ void TS::Unit::SetActiveCommand(const std::string& command, float duration) {
     std::cout << "\a"; // Audio feedback for individual unit
 }
 
-void TS::Unit::CheckEngagement(const std::vector<std::unique_ptr<Unit>>& allUnits, float deltaTime) {
+void TS::Unit::CheckContact(const std::vector<std::unique_ptr<Unit>>& allUnits, float deltaTime) {
     if (!IsActive()) return;
     
     for (const auto& other : allUnits) {
         if (!other || !other->IsActive() || other->GetId() == m_id) continue;
         
-        // Only engage with opposing forces
+        // Only engage with opposing teams
         if (other->IsAllied() == m_isAllied) continue;
         
-        if (IsInEngagementRange(*other)) {
-            // Engagement detected - apply attrition
-            float damage = deltaTime * 8.0f; // Damage per second during engagement
+        if (IsInContactRange(*other)) {
+            // Contact detected - apply attrition
+            float damage = deltaTime * 8.0f; // Damage per second during contact
             TakeDamage(damage);
             
-            // Audio and visual feedback for engagement (non-blocking)
+            // Audio and visual feedback for contact (non-blocking)
             if (m_isAllied) {
                 system("afplay /System/Library/Sounds/Ping.aiff > /dev/null 2>&1 &");
-                std::cout << "🔥 Blue unit " << m_id << " engaged! Health: " 
-                          << (int)(m_health/m_maxHealth*100) << "%" << std::endl;
+                std::cout << "🔥 Blue unit " << m_id << " in contact! Health: " 
+                          << static_cast<int>(m_health) << "%" << std::endl;
             } else {
                 system("afplay /System/Library/Sounds/Pop.aiff > /dev/null 2>&1 &");
                 std::cout << "⚡ Red unit " << m_id << " in contact! Health: " 
@@ -246,20 +246,20 @@ void TS::Unit::CheckEngagement(const std::vector<std::unique_ptr<Unit>>& allUnit
             if (m_health <= 0) {
                 system("afplay /System/Library/Sounds/Basso.aiff > /dev/null 2>&1 &");
                 if (m_isAllied) {
-                    std::cout << "💀 Blue unit " << m_id << " eliminated" << std::endl;
+                    std::cout << "� Blue unit " << m_id << " disabled" << std::endl;
                 } else {
-                    std::cout << "💀 Red unit " << m_id << " neutralized" << std::endl;
+                    std::cout << "� Red unit " << m_id << " removed" << std::endl;
                 }
             }
-            break; // Only engage with one unit at a time
+            break; // Only interact with one unit at a time
         }
     }
 }
 
-bool TS::Unit::IsInEngagementRange(const Unit& other) const {
-    float engagementRange = 25.0f; // Increased engagement range for better detection
+bool TS::Unit::IsInContactRange(const Unit& other) const {
+    float contactRange = 25.0f; // Increased contact range for better detection
     float distance = glm::distance(m_position, other.GetPosition());
-    return distance <= engagementRange;
+    return distance <= contactRange;
 }
 
 }

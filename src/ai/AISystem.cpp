@@ -32,8 +32,8 @@ void AISystem::Update(float deltaTime) {
             LearnAndAdapt();
         }
         
-        // Make tactical decisions
-        MakeTacticalDecision();
+        // Make strategic decisions
+        MakeStrategicDecision();
     }
 }
 
@@ -59,7 +59,7 @@ void AISystem::LearnAndAdapt() {
     }
 }
 
-void AISystem::MakeTacticalDecision() {
+void AISystem::MakeStrategicDecision() {
     std::cout << "🎯 AI Decision: Executing '" << m_strategies[m_currentStrategy] 
               << "' with " << (int)(m_learningRate * 100) << "% adaptation rate" << std::endl;
     
@@ -71,7 +71,7 @@ void AISystem::MakeTacticalDecision() {
     int randomEvent = eventDist(gen);
     switch (randomEvent) {
         case 1:
-            std::cout << "📡 Intelligence reports: Enemy movement detected in sector 7" << std::endl;
+            std::cout << "📡 Intelligence reports: Opposition movement detected in sector 7" << std::endl;
             break;
         case 2:
             std::cout << "🛰️  Satellite recon: New unit formations spotted" << std::endl;
@@ -80,37 +80,37 @@ void AISystem::MakeTacticalDecision() {
             std::cout << "⚡ Field update: Engaging targets of opportunity" << std::endl;
             break;
         case 4:
-            std::cout << "🎯 Strategic assessment: Adjusting force positioning" << std::endl;
+            std::cout << "🎯 Strategic assessment: Adjusting team positioning" << std::endl;
             break;
         case 5:
             std::cout << "📊 Tactical analysis: Evaluating threat priorities" << std::endl;
             break;
         case 6:
-            std::cout << "🔄 Command update: Implementing new battlefield doctrine" << std::endl;
+            std::cout << "🔄 Instruction update: Implementing new field strategy" << std::endl;
             break;
     }
 }
 
-void AISystem::ReactToPlayerCommand(const std::string& command) {
-    std::cout << "🔴 AI REACTION: Player used " << command << " - adapting red force strategy" << std::endl;
+void AISystem::ReactToPlayerInstruction(const std::string& command) {
+    std::cout << "🔴 AI REACTION: Player used " << command << " - adapting red team strategy" << std::endl;
     system("afplay /System/Library/Sounds/Sosumi.aiff > /dev/null 2>&1 &");
-    std::cout << "🎵 RED FORCES ADAPTING..." << std::endl;
+    std::cout << "🎵 RED TEAM ADAPTING..." << std::endl;
     
     // AI reacts intelligently to player commands
     if (command == "ADVANCE") {
-        std::cout << "  🛡️  Red forces taking defensive positions against blue advance" << std::endl;
+        std::cout << "  🛡️  Red team taking protective positions against blue advance" << std::endl;
         m_currentStrategy = 1; // Defensive Hold
     } else if (command == "DEFEND") {
-        std::cout << "  ⚡  Red forces launching aggressive assault on defensive positions" << std::endl;
+        std::cout << "  ⚡  Red team launching coordinated approach on protective positions" << std::endl;
         m_currentStrategy = 0; // Aggressive Advance
     } else if (command == "PATROL") {
-        std::cout << "  🌊  Red forces initiating flanking maneuvers against patrol routes" << std::endl;
+        std::cout << "  🌊  Red team initiating flanking maneuvers against patrol routes" << std::endl;
         m_currentStrategy = 2; // Flanking Maneuver
     } else if (command == "WITHDRAW") {
-        std::cout << "  🏃  Red forces pursuing withdrawing blue forces" << std::endl;
+        std::cout << "  🏃  Red team pursuing withdrawing blue team" << std::endl;
         m_currentStrategy = 0; // Aggressive Advance
     } else if (command == "RECON") {
-        std::cout << "  👁️  Red forces concealing positions from reconnaissance" << std::endl;
+        std::cout << "  👁️  Red team concealing positions from reconnaissance" << std::endl;
         m_currentStrategy = 3; // Strategic Withdrawal
     }
     

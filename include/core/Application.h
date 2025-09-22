@@ -29,7 +29,7 @@ class Application {
     double m_lastMouseX, m_lastMouseY;
     bool m_firstMouse;
     
-    // Visual feedback for operator commands
+    // Visual feedback for operator instructions
     std::string m_lastCommand;
     float m_commandFeedbackTimer;
     int m_commandExecutionCount;

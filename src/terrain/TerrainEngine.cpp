@@ -168,7 +168,7 @@ void TerrainEngine::GenerateRandomTerrain(int width, int height) {
     std::cout << "🌱 Generating unique terrain with seed: " << seed << std::endl;
     
     // Enhanced terrain characteristics for VERY dramatic slopes with extreme elevation
-    float base_amplitude = 80.0f + dis(gen) * 60.0f;  // MUCH more dramatic terrain (80-140 for steep mountains)
+    float base_amplitude = 120.0f + dis(gen) * 80.0f;  // EXTREMELY dramatic terrain (120-200 for massive mountains)
     float base_frequency = 0.0008f + (rd() % 5000) * 0.0000003f;  // Very low frequency for massive mountain ranges
     float terrain_complexity = 1.2f + feature_dis(gen) * 0.5f;  // Very high complexity for extreme terrain
     
@@ -223,7 +223,7 @@ void TerrainEngine::GenerateRandomTerrain(int width, int height) {
     std::cout << "High-resolution terrain generated - Height range: " << m_minHeight << " to " << m_maxHeight << std::endl;
     
     // Use enhanced vertical scale for steeper appearance
-    float steepScale = 2.0f;  // Double the vertical scale for much steeper terrain
+    float steepScale = 3.0f;  // Triple the vertical scale for extremely steep terrain
     m_terrainMesh->GenerateFromHeightmap(m_heightData, width, height, steepScale);
 }
 

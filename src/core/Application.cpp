@@ -166,7 +166,7 @@ bool Application::Initialize() {
     std::cout << "  Page Up/Down: Move up/down" << std::endl;
     std::cout << "  Mouse: Look around (when captured)" << std::endl;
     std::cout << "  Space: Start/Pause simulation" << std::endl;
-    std::cout << "  R: Reset simulation" << std::endl;
+    std::cout << "  R: Restart with new terrain and scenario" << std::endl;
     std::cout << "  ESC: Exit safely" << std::endl;
     std::cout << "\n� BLUE FORCE OPERATOR COMMANDS:" << std::endl;
     std::cout << "  1: Advance and secure area" << std::endl;
@@ -177,14 +177,14 @@ bool Application::Initialize() {
     std::cout << "\n🚀 Enhanced Features:" << std::endl;
     std::cout << "  📊  3D contoured grid terrain (no white mesh)" << std::endl;
     std::cout << "  🧠  AI learning and strategy adaptation" << std::endl;
-    std::cout << "  🔵  Interactive blue force command and control" << std::endl;
+    std::cout << "  🔵  Interactive blue team instruction and control" << std::endl;
     std::cout << "  🎯  Real-time tactical decision making" << std::endl;
     std::cout << "\n💡 OPERATOR GUIDANCE:" << std::endl;
-    std::cout << "  • YOU command the BLUE forces (rectangles)" << std::endl;
-    std::cout << "  • RED forces are AI-controlled (diamonds)" << std::endl;
+    std::cout << "  • YOU control the BLUE team (rectangles)" << std::endl;
+    std::cout << "  • RED team is AI-controlled (diamonds)" << std::endl;
     std::cout << "  • Use keys 1-5 to give tactical orders" << std::endl;
     std::cout << "  • Watch blue units respond to your commands" << std::endl;
-    std::cout << "  • AI will counter your moves with red forces" << std::endl;
+    std::cout << "  • AI will counter your moves with red team" << std::endl;
     
     m_isRunning = true;
     return true;
@@ -387,9 +387,9 @@ void Application::Render() {
                         // Bright pulsing outline for units with active commands
                         float pulse = 0.7f + 0.3f * sin(glfwGetTime() * 8.0f);
                         if (unit->IsAllied()) {
-                            glColor4f(0.0f, 1.0f, 1.0f, pulse); // Cyan for blue force commands
+                            glColor4f(0.0f, 1.0f, 1.0f, pulse); // Cyan for blue team instructions
                         } else {
-                            glColor4f(1.0f, 0.5f, 0.0f, pulse); // Orange for red force
+                            glColor4f(1.0f, 0.5f, 0.0f, pulse); // Orange for red team
                         }
                         glLineWidth(10.0f);
                         EntitySymbols::RenderUnitSymbol(*unit);
@@ -608,23 +608,35 @@ void Application::KeyCallback(GLFWwindow* window, int key, int scancode, int act
                 std::cout << "▶️  Simulation started" << std::endl;
             }
         } else if (key == GLFW_KEY_R && app->m_simulationEngine) {
+            // Full restart with new terrain and simulation
+            std::cout << "🔄 RESTARTING SIMULATION..." << std::endl;
+            std::cout << "🗺️  Generating new terrain..." << std::endl;
+            
+            // Regenerate terrain with new random seed
+            if (app->m_terrainEngine) {
+                app->m_terrainEngine->GenerateRandomTerrain(128, 128);
+                std::cout << "✅ New terrain generated" << std::endl;
+            }
+            
+            // Reset and reinitialize simulation
             app->m_simulationEngine->Reset();
             app->m_simulationEngine->Initialize();
-            std::cout << "🔄 Simulation reset with new scenario" << std::endl;
+            std::cout << "✅ Simulation reset with new scenario and terrain" << std::endl;
+            std::cout << "🎯 Ready for new strategic operations!" << std::endl;
         } else if (key == GLFW_KEY_1) {
-            std::cout << "🔵 BLUE FORCE COMMAND: Advance and secure area" << std::endl;
+            std::cout << "🔵 BLUE TEAM INSTRUCTION: Advance and secure area" << std::endl;
             app->CommandBlueForces("ADVANCE");
         } else if (key == GLFW_KEY_2) {
-            std::cout << "🔵 BLUE FORCE COMMAND: Take defensive positions" << std::endl;
+            std::cout << "🔵 BLUE TEAM INSTRUCTION: Take protective positions" << std::endl;
             app->CommandBlueForces("DEFEND");
         } else if (key == GLFW_KEY_3) {
-            std::cout << "🔵 BLUE FORCE COMMAND: Begin patrol operations" << std::endl;
+            std::cout << "🔵 BLUE TEAM INSTRUCTION: Begin patrol operations" << std::endl;
             app->CommandBlueForces("PATROL");
         } else if (key == GLFW_KEY_4) {
-            std::cout << "🔵 BLUE FORCE COMMAND: Withdraw to rally point" << std::endl;
+            std::cout << "🔵 BLUE TEAM INSTRUCTION: Withdraw to rally point" << std::endl;
             app->CommandBlueForces("WITHDRAW");
         } else if (key == GLFW_KEY_5) {
-            std::cout << "🔵 BLUE FORCE COMMAND: Reconnaissance mode" << std::endl;
+            std::cout << "🔵 BLUE TEAM INSTRUCTION: Reconnaissance mode" << std::endl;
             app->CommandBlueForces("RECON");
         }
     } else if (action == GLFW_RELEASE) {
@@ -668,13 +680,11 @@ void Application::Shutdown() {
 
 void Application::CommandBlueForces(const std::string& command) {
     if (!m_simulationEngine) {
-        std::cout << "⚠️  No simulation engine available for blue force commands" << std::endl;
+        std::cout << "⚠️  No simulation engine available for blue team instructions" << std::endl;
         return;
     }
-    
-    std::cout << "🔵 EXECUTING BLUE FORCE COMMAND: " << command << std::endl;
-    
-    // Audio feedback for command execution (non-blocking)
+
+    std::cout << "🔵 EXECUTING BLUE TEAM INSTRUCTION: " << command << std::endl;    // Audio feedback for command execution (non-blocking)
     system("afplay /System/Library/Sounds/Hero.aiff > /dev/null 2>&1 &");
     
     // Set visual feedback variables
@@ -744,7 +754,7 @@ void Application::CommandBlueForces(const std::string& command) {
                 std::cout << "  ⬅️  " << unit->GetTypeString() << " withdrawing to rally point" << std::endl;
                 
             } else if (command == "RECON") {
-                // Scout ahead toward enemy positions
+                // Scout ahead toward opposition positions
                 unit->SetTargetPosition(glm::vec3(50.0f, 0.0f, 30.0f));
                 unit->SetMovementSpeed(1.2f); // Slow, stealthy movement
                 unit->SetActiveCommand("RECON", 4.0f); // Visual feedback
@@ -755,11 +765,11 @@ void Application::CommandBlueForces(const std::string& command) {
         }
     }
     
-    std::cout << "✅ Command executed - " << blueUnitsAffected << " blue force units received orders" << std::endl;
+    std::cout << "✅ Instruction executed - " << blueUnitsAffected << " blue team units received orders" << std::endl;
     
-    // Notify AI system that player has issued commands
+    // Notify AI system that player has issued instructions
     if (m_aiSystem) {
-        m_aiSystem->ReactToPlayerCommand(command);
+        m_aiSystem->ReactToPlayerInstruction(command);
     }
 }
 

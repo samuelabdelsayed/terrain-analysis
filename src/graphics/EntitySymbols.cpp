@@ -6,7 +6,7 @@ namespace TS {
 
 void EntitySymbols::RenderUnitSymbol(const Unit& unit) {
     glm::vec3 position = unit.GetPosition();
-    position.y += 50.0f; // Hover well above ground for visibility with steep terrain
+    position.y += 120.0f; // Hover well above ground for visibility with extreme terrain
     
     glm::vec3 color = unit.GetRenderColor();
     bool isAllied = unit.IsAllied();

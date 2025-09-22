@@ -13,7 +13,7 @@ private:
     int m_currentStrategy;
     
     void LearnAndAdapt();
-    void MakeTacticalDecision();
+    void MakeStrategicDecision();
     
 public:
     AISystem();
@@ -22,7 +22,7 @@ public:
     void Initialize();
     void Update(float deltaTime);
     void SetComplexity(int level);
-    void ReactToPlayerCommand(const std::string& command);
+    void ReactToPlayerInstruction(const std::string& command);
 };
 
 }

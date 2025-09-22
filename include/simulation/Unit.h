@@ -46,8 +46,8 @@ public:
     void SetMovementSpeed(float speed);
     void SetActiveCommand(const std::string& command, float duration = 3.0f);
     void TakeDamage(float damage);
-    void CheckEngagement(const std::vector<std::unique_ptr<Unit>>& allUnits, float deltaTime);
-    bool IsInEngagementRange(const Unit& other) const;
+    void CheckContact(const std::vector<std::unique_ptr<Unit>>& allUnits, float deltaTime);
+    bool IsInContactRange(const Unit& other) const;
     
     int GetId() const { return m_id; }
     UnitType GetType() const { return m_type; }

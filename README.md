@@ -1,6 +1,11 @@
 # Terrain Analysis Simulator
 
-A comprehensive desktop application for professional terrain analysis and environmental simulation.
+A comprehensive desktop application for pr### 🤖 **AI System**
+- **Intelligent entity behavior** with configurable complexity
+- **Real-time decision making** and adaptation
+- **Multi-agent coordination**
+
+### 🎮 **Interactive Features**onal terrain analysis and environmental simulation.
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
@@ -61,7 +66,7 @@ The Terrain Analysis Simulator is a full-fledged desktop application designed fo
 - **High-resolution 3D terrain rendering** (128x128 mesh)
 - **Realistic elevation-based coloring** (water, grassland, mountains, snow)
 - **Professional topographical contour mapping**
-- **Military-grade contour line system** with multiple density levels
+- **Professional contour line system** with multiple density levels
 - **Interactive 3D navigation** with mouse and keyboard controls
 
 ### 🎯 **Simulation Engine**
@@ -88,7 +93,7 @@ The Terrain Analysis Simulator is a full-fledged desktop application designed fo
 - **Terrain Engine**: 3D terrain generation and rendering
 - **Simulation Engine**: Entity management and physics
 - **Camera System**: 3D navigation and view control
-- **Entity Symbols**: Professional military-style visualization
+- **Entity Symbols**: Professional research visualization
 - **AI System**: Intelligent behavior and decision making
 - **Database Manager**: Scenario storage and management
 
