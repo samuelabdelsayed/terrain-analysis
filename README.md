@@ -13,7 +13,7 @@ A desktop application for terrain and 🤖 **AI System** integration/
 
 ## Overview
 
-The Terrain Analysis Simulator is a full-fledged desktop application designed for researchers, engineers, and analysts to conduct sophisticated terrain analysis and run realistic environmental simulations.
+The Terrain Analysis Simulator is an application designed for researchers, engineers, and analysts to conduct terrain analysis and run environmental simulations.
 
 ## Quick Start
 
