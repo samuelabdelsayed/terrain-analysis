@@ -1,6 +1,6 @@
 # Terrain Analysis Simulator
 
-A comprehensive desktop application for pr### 🤖 **AI System**
+A desktop application for terrain and 🤖 **AI System** integration/
 - **Intelligent entity behavior** with configurable complexity
 - **Real-time decision making** and adaptation
 - **Multi-agent coordination**
