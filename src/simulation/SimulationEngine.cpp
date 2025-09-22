@@ -28,15 +28,15 @@ void SimulationEngine::CreateScenario(const std::string& scenarioName) {
     std::cout << "🎬 Creating scenario: " << scenarioName << std::endl;
     
     if (scenarioName == "Border Patrol") {
-        // Allied patrol formation
-        AddUnit(UnitType::PERSONNEL, glm::vec3(-80, 0, -80), true);
-        AddUnit(UnitType::VEHICLE, glm::vec3(-60, 0, -100), true);
-        AddUnit(UnitType::SENSOR, glm::vec3(-100, 0, -60), true);
+        // Allied patrol formation - spawn above terrain with elevation
+        AddUnit(UnitType::PERSONNEL, glm::vec3(-20, 300, -20), true);
+        AddUnit(UnitType::VEHICLE, glm::vec3(-15, 300, -25), true);
+        AddUnit(UnitType::SENSOR, glm::vec3(-25, 300, -15), true);
         
-        // Opposition reconnaissance
-        AddUnit(UnitType::PERSONNEL, glm::vec3(70, 0, 90), false);
-        AddUnit(UnitType::VEHICLE, glm::vec3(90, 0, 70), false);
-        AddUnit(UnitType::EQUIPMENT, glm::vec3(110, 0, 110), false);
+        // Opposition reconnaissance - spawn above terrain with elevation
+        AddUnit(UnitType::PERSONNEL, glm::vec3(20, 300, 20), false);
+        AddUnit(UnitType::VEHICLE, glm::vec3(15, 300, 25), false);
+        AddUnit(UnitType::EQUIPMENT, glm::vec3(25, 300, 15), false);
     }
 }
 
@@ -47,11 +47,46 @@ void SimulationEngine::Update(float deltaTime) {
     
     m_simulationTime += deltaTime;
     
-    // Update all units
+    // Track unit activity for feedback
+    static float activityTimer = 0.0f;
+    activityTimer += deltaTime;
+    
+    int unitsMoving = 0;
+    int unitsEngaged = 0;
+    
+    // Update all units and check for engagements
     for (auto& unit : m_units) {
         if (unit) { // Safety check
             unit->Update(deltaTime);
+            
+            // Check for engagements with other units
+            unit->CheckEngagement(m_units, deltaTime);
+            
+            // Check if unit is moving
+            auto pos = unit->GetPosition();
+            auto target = unit->GetTargetPosition();
+            if (glm::distance(pos, target) > 1.0f) {
+                unitsMoving++;
+            }
+            
+            // Check if unit has an active command
+            if (!unit->GetActiveCommand().empty()) {
+                unitsEngaged++;
+            }
         }
+    }
+    
+    // Report significant activity every 8 seconds
+    if (activityTimer >= 8.0f) {
+        if (unitsMoving > 0 || unitsEngaged > 0) {
+            std::cout << "⚡ FIELD ACTIVITY: " << unitsMoving << " units maneuvering, " 
+                      << unitsEngaged << " executing commands" << std::endl;
+            if (unitsMoving >= 3) {
+                std::cout << "🚁 Heavy movement detected across multiple sectors" << std::endl;
+                system("afplay /System/Library/Sounds/Blow.aiff > /dev/null 2>&1 &");
+            }
+        }
+        activityTimer = 0.0f;
     }
     
     // Remove inactive units safely

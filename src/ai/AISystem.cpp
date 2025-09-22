@@ -22,13 +22,13 @@ void AISystem::Initialize() {
 void AISystem::Update(float deltaTime) {
     m_updateTimer += deltaTime;
     
-    if (m_updateTimer >= 5.0f) {
-        // AI learns and adapts every 5 seconds
+    if (m_updateTimer >= 3.0f) { // Reduced from 5.0f for more activity
+        // AI learns and adapts every 3 seconds now
         m_updateTimer = 0.0f;
         m_experience++;
         
         // Dynamic strategy selection based on experience
-        if (m_experience % 10 == 0) {
+        if (m_experience % 8 == 0) { // Reduced from 10 for more frequent changes
             LearnAndAdapt();
         }
         
@@ -62,10 +62,39 @@ void AISystem::LearnAndAdapt() {
 void AISystem::MakeTacticalDecision() {
     std::cout << "🎯 AI Decision: Executing '" << m_strategies[m_currentStrategy] 
               << "' with " << (int)(m_learningRate * 100) << "% adaptation rate" << std::endl;
+    
+    // Add randomized tactical commentary every decision
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> eventDist(1, 6);
+    
+    int randomEvent = eventDist(gen);
+    switch (randomEvent) {
+        case 1:
+            std::cout << "📡 Intelligence reports: Enemy movement detected in sector 7" << std::endl;
+            break;
+        case 2:
+            std::cout << "🛰️  Satellite recon: New unit formations spotted" << std::endl;
+            break;
+        case 3:
+            std::cout << "⚡ Field update: Engaging targets of opportunity" << std::endl;
+            break;
+        case 4:
+            std::cout << "🎯 Strategic assessment: Adjusting force positioning" << std::endl;
+            break;
+        case 5:
+            std::cout << "📊 Tactical analysis: Evaluating threat priorities" << std::endl;
+            break;
+        case 6:
+            std::cout << "🔄 Command update: Implementing new battlefield doctrine" << std::endl;
+            break;
+    }
 }
 
 void AISystem::ReactToPlayerCommand(const std::string& command) {
     std::cout << "🔴 AI REACTION: Player used " << command << " - adapting red force strategy" << std::endl;
+    system("afplay /System/Library/Sounds/Sosumi.aiff > /dev/null 2>&1 &");
+    std::cout << "🎵 RED FORCES ADAPTING..." << std::endl;
     
     // AI reacts intelligently to player commands
     if (command == "ADVANCE") {

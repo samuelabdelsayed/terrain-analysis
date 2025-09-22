@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <random>
 #include <ctime>
+#include <unistd.h>  // for getpid()
 
 namespace TS {
 
@@ -157,21 +158,23 @@ void TerrainEngine::GenerateRandomTerrain(int width, int height) {
     m_height = height;
     m_heightData.resize(width * height);
     
-    // Enhanced randomization - ensure different terrain each launch
+    // Enhanced randomization - ensure completely different terrain each launch
     std::random_device rd;
-    auto seed = rd() ^ static_cast<unsigned>(std::time(nullptr));
+    auto seed = rd() ^ static_cast<unsigned>(std::time(nullptr)) ^ static_cast<unsigned>(getpid());
     std::mt19937 gen(seed);
-    std::uniform_real_distribution<float> dis(-8.0f, 35.0f);
+    std::uniform_real_distribution<float> dis(-1.0f, 1.0f);  // Normalized for better randomization
     std::uniform_real_distribution<float> feature_dis(0.6f, 1.4f);
     
-    // Randomize terrain characteristics each launch
-    float base_amplitude = 35.0f + dis(gen) * 0.3f;
-    float base_frequency = 0.006f + (rd() % 1000) * 0.000003f;
-    float terrain_complexity = 0.5f + feature_dis(gen) * 0.5f;
+    std::cout << "🌱 Generating unique terrain with seed: " << seed << std::endl;
     
-    std::cout << "🌍 Terrain variation: amplitude=" << base_amplitude 
+    // Enhanced terrain characteristics for VERY dramatic slopes with extreme elevation
+    float base_amplitude = 80.0f + dis(gen) * 60.0f;  // MUCH more dramatic terrain (80-140 for steep mountains)
+    float base_frequency = 0.0008f + (rd() % 5000) * 0.0000003f;  // Very low frequency for massive mountain ranges
+    float terrain_complexity = 1.2f + feature_dis(gen) * 0.5f;  // Very high complexity for extreme terrain
+    
+    std::cout << "�️  Enhanced terrain: amplitude=" << base_amplitude 
               << ", frequency=" << base_frequency 
-              << ", complexity=" << terrain_complexity << std::endl;
+              << ", complexity=" << terrain_complexity << " (dramatic slopes)" << std::endl;
     
     // Generate much more detailed heightmap with multiple octaves
     for (int z = 0; z < height; ++z) {
@@ -187,13 +190,17 @@ void TerrainEngine::GenerateRandomTerrain(int width, int height) {
                 float sample_x = x * frequency;
                 float sample_z = z * frequency;
                 
-                // Enhanced terrain generation with more variation
+                // Enhanced terrain generation with EXTREME variation and steep gradients
                 height_val += sin(sample_x * terrain_complexity) * cos(sample_z) * amplitude;
-                height_val += cos(sample_x * 1.3f) * sin(sample_z * 0.9f * terrain_complexity) * amplitude * 0.7f;
-                height_val += sin(sample_x * 2.1f + terrain_complexity) * amplitude * 0.4f;
+                height_val += cos(sample_x * 1.3f) * sin(sample_z * 0.9f * terrain_complexity) * amplitude * 0.9f;
+                height_val += sin(sample_x * 2.1f + terrain_complexity) * amplitude * 0.7f;
+                height_val += cos(sample_z * 1.7f + terrain_complexity) * amplitude * 0.6f;  // Additional steepness
                 
-                // Add randomized noise for unique terrain each time
-                height_val += (dis(gen) * 0.1f) * amplitude * 0.2f;
+                // Add sharp ridges and valleys for extreme terrain
+                height_val += sin(sample_x * 4.0f) * cos(sample_z * 4.0f) * amplitude * 0.4f;
+                
+                // Add randomized noise for steep terrain features
+                height_val += (dis(gen) * 0.15f) * amplitude * 0.3f;
                 
                 amplitude *= 0.5f;
                 frequency *= 2.0f;
@@ -214,7 +221,10 @@ void TerrainEngine::GenerateRandomTerrain(int width, int height) {
     }
     
     std::cout << "High-resolution terrain generated - Height range: " << m_minHeight << " to " << m_maxHeight << std::endl;
-    m_terrainMesh->GenerateFromHeightmap(m_heightData, width, height, m_terrainScale);
+    
+    // Use enhanced vertical scale for steeper appearance
+    float steepScale = 2.0f;  // Double the vertical scale for much steeper terrain
+    m_terrainMesh->GenerateFromHeightmap(m_heightData, width, height, steepScale);
 }
 
 void TerrainEngine::Render() {

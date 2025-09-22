@@ -10,6 +10,7 @@
 #include <thread>
 #include <cmath>
 #include <cstring>
+#include <iomanip>
 
 #include <OpenGL/gl.h>
 
@@ -68,12 +69,15 @@ void SetLookAt(float eyeX, float eyeY, float eyeZ,
 Application::Application() 
     : m_window(nullptr), m_isRunning(false), m_lastFrameTime(0.0f),
       m_lastMouseX(640), m_lastMouseY(360), m_firstMouse(true),
-      m_lastCommand(""), m_commandFeedbackTimer(0.0f), m_commandExecutionCount(0) {
+      m_lastCommand(""), m_commandFeedbackTimer(0.0f), m_commandExecutionCount(0),
+      m_simulationSpeed(1.0f), m_lastSpeedChange(std::chrono::steady_clock::now()) {
     
     std::memset(m_keys, 0, sizeof(m_keys));
 }
 
 Application::~Application() {
+    // Kill any remaining audio processes before shutdown
+    system("pkill -f afplay > /dev/null 2>&1");
     Shutdown();
 }
 
@@ -134,7 +138,7 @@ bool Application::Initialize() {
         
         std::cout << "Initializing Terrain..." << std::endl;
         m_terrainEngine = std::make_unique<TerrainEngine>();
-        m_terrainEngine->GenerateRandomTerrain(128, 128);
+        m_terrainEngine->GenerateRandomTerrain(256, 256);  // Much larger terrain
         
         std::cout << "Initializing Simulation Engine..." << std::endl;
         m_simulationEngine = std::make_unique<SimulationEngine>();
@@ -155,6 +159,7 @@ bool Application::Initialize() {
     
     std::cout << "\n=== Enhanced Terrain Simulator ===" << std::endl;
     std::cout << "✅ All systems initialized successfully!" << std::endl;
+    system("afplay /System/Library/Sounds/Glass.aiff > /dev/null 2>&1 &");
     std::cout << "\n🎮 Controls:" << std::endl;
     std::cout << "  TAB: Toggle mouse capture" << std::endl;
     std::cout << "  Arrow Keys: Move camera (←↑→↓)" << std::endl;
@@ -210,15 +215,18 @@ void Application::Run() {
 
 void Application::Update(float deltaTime) {
     try {
+        // Apply simulation speed multiplier
+        float adjustedDeltaTime = deltaTime * m_simulationSpeed;
+        
         if (m_simulationEngine) {
-            m_simulationEngine->Update(deltaTime);
+            m_simulationEngine->Update(adjustedDeltaTime);
         }
         
         if (m_aiSystem) {
-            m_aiSystem->Update(deltaTime);
+            m_aiSystem->Update(adjustedDeltaTime);
         }
         
-        // Update command feedback timer
+        // Update command feedback timer (use normal deltaTime)
         if (m_commandFeedbackTimer > 0.0f) {
             m_commandFeedbackTimer -= deltaTime;
         }
@@ -636,6 +644,9 @@ void Application::HandleInput() {
 void Application::Shutdown() {
     std::cout << "Safe shutdown in progress..." << std::endl;
     
+    // Kill any background audio processes
+    system("pkill -f afplay > /dev/null 2>&1");
+    
     if (m_simulationEngine) {
         m_simulationEngine->Reset();
     }
@@ -663,6 +674,9 @@ void Application::CommandBlueForces(const std::string& command) {
     
     std::cout << "🔵 EXECUTING BLUE FORCE COMMAND: " << command << std::endl;
     
+    // Audio feedback for command execution (non-blocking)
+    system("afplay /System/Library/Sounds/Hero.aiff > /dev/null 2>&1 &");
+    
     // Set visual feedback variables
     m_lastCommand = command;
     m_commandFeedbackTimer = 3.0f; // Show feedback for 3 seconds
@@ -677,8 +691,14 @@ void Application::CommandBlueForces(const std::string& command) {
         if (unit->IsAllied()) {
             
             if (command == "ADVANCE") {
-                // Move toward center/objective
-                unit->SetTargetPosition(glm::vec3(10.0f, 0.0f, 10.0f));
+                // Move toward center/objective with VERY tight boundary constraints
+                glm::vec3 target = glm::vec3(5.0f, 0.0f, 5.0f);  // Closer target
+                glm::vec3 clampedTarget = glm::vec3(
+                    std::clamp(target.x, -25.0f, 25.0f),
+                    target.y,
+                    std::clamp(target.z, -25.0f, 25.0f)
+                );
+                unit->SetTargetPosition(clampedTarget);
                 unit->SetMovementSpeed(2.5f); // Faster movement
                 unit->SetActiveCommand("ADVANCING", 4.0f); // Visual feedback for 4 seconds
                 std::cout << "  ➡️  " << unit->GetTypeString() << " advancing to objective" << std::endl;
@@ -692,22 +712,33 @@ void Application::CommandBlueForces(const std::string& command) {
                 std::cout << "  🛡️  " << unit->GetTypeString() << " taking defensive position" << std::endl;
                 
             } else if (command == "PATROL") {
-                // Begin patrol pattern around current area
+                // Begin patrol pattern with VERY tight boundary constraints
                 auto currentPos = unit->GetPosition();
-                float patrolRadius = 25.0f;
+                float patrolRadius = 15.0f;  // Much smaller patrol radius
                 glm::vec3 patrolTarget = currentPos + glm::vec3(
                     sin(glfwGetTime() + unit->GetId()) * patrolRadius,
                     0.0f,
                     cos(glfwGetTime() + unit->GetId()) * patrolRadius
                 );
-                unit->SetTargetPosition(patrolTarget);
+                glm::vec3 clampedTarget = glm::vec3(
+                    std::clamp(patrolTarget.x, -25.0f, 25.0f),
+                    patrolTarget.y,
+                    std::clamp(patrolTarget.z, -25.0f, 25.0f)
+                );
+                unit->SetTargetPosition(clampedTarget);
                 unit->SetMovementSpeed(1.8f); // Normal patrol speed
                 unit->SetActiveCommand("PATROLLING", 4.0f); // Visual feedback
                 std::cout << "  🔄  " << unit->GetTypeString() << " beginning patrol operations" << std::endl;
                 
             } else if (command == "WITHDRAW") {
-                // Move to safe rally point (back corner)
-                unit->SetTargetPosition(glm::vec3(-40.0f, 0.0f, -40.0f));
+                // Move to safe rally point with VERY tight boundary constraints
+                glm::vec3 rallyPoint = glm::vec3(-20.0f, 0.0f, -20.0f);  // Closer rally point
+                glm::vec3 clampedTarget = glm::vec3(
+                    std::clamp(rallyPoint.x, -25.0f, 25.0f),
+                    rallyPoint.y,
+                    std::clamp(rallyPoint.z, -25.0f, 25.0f)
+                );
+                unit->SetTargetPosition(clampedTarget);
                 unit->SetMovementSpeed(3.0f); // Fast withdrawal
                 unit->SetActiveCommand("WITHDRAWING", 4.0f); // Visual feedback
                 std::cout << "  ⬅️  " << unit->GetTypeString() << " withdrawing to rally point" << std::endl;

@@ -33,34 +33,56 @@ void Unit::Update(float deltaTime) {
         return;
     }
     
-    // Dynamic AI-driven movement
+    // Dynamic AI-driven movement (more frequent updates)
     static float behaviorTimer = 0.0f;
     behaviorTimer += deltaTime;
     
-    if (m_state == UnitState::MOVING || behaviorTimer > 3.0f) {
-        // AI decides new destination every 3 seconds
-        if (behaviorTimer > 3.0f) {
+    if (m_state == UnitState::MOVING || behaviorTimer > 2.0f) { // Reduced from 3.0f
+        // AI decides new destination every 2 seconds for more activity
+        if (behaviorTimer > 2.0f) {
             behaviorTimer = 0.0f;
             
             // Different behaviors based on unit type and allegiance
             if (m_isAllied) {
-                // Allied units patrol in formation
-                float patrolRadius = 50.0f;
+                // Allied units patrol in formation with VERY strict boundary constraints
+                float patrolRadius = 20.0f;  // Reduced patrol radius
                 float angle = (GetId() * 60.0f + behaviorTimer * 10.0f) * M_PI / 180.0f;
-                m_destination = glm::vec3(
-                    cos(angle) * patrolRadius - 50.0f,
+                glm::vec3 newDest = glm::vec3(
+                    cos(angle) * patrolRadius - 15.0f,  // Much smaller offset
                     0,
-                    sin(angle) * patrolRadius - 50.0f
+                    sin(angle) * patrolRadius - 15.0f   // Much smaller offset
                 );
+                // VERY tight terrain boundaries (-30 to +30 maximum)
+                m_destination = glm::vec3(
+                    std::clamp(newDest.x, -30.0f, 30.0f),
+                    0,
+                    std::clamp(newDest.z, -30.0f, 30.0f)
+                );
+                
+                // Double-check position constraint
+                if (glm::length(m_destination) > 35.0f) {
+                    m_destination = glm::normalize(m_destination) * 30.0f;
+                }
             } else {
-                // Opposition units use aggressive search patterns
-                float searchRadius = 80.0f;
+                // Opposition units with VERY strict boundary constraints
+                float searchRadius = 25.0f;  // Much smaller radius
                 float angle = (GetId() * 90.0f - behaviorTimer * 15.0f) * M_PI / 180.0f;
-                m_destination = glm::vec3(
-                    cos(angle) * searchRadius + 50.0f,
+                glm::vec3 newDest = glm::vec3(
+                    cos(angle) * searchRadius + 10.0f,  // Much smaller offset
                     0,
-                    sin(angle) * searchRadius + 50.0f
+                    sin(angle) * searchRadius + 10.0f   // Much smaller offset
                 );
+                // VERY tight terrain boundaries (-30 to +30 maximum)
+                m_destination = glm::vec3(
+                    std::clamp(newDest.x, -30.0f, 30.0f),
+                    0,
+                    std::clamp(newDest.z, -30.0f, 30.0f)
+                );
+                
+                // Double-check position constraint
+                if (glm::length(m_destination) > 35.0f) {
+                    m_destination = glm::normalize(m_destination) * 30.0f;
+                }
             }
             m_state = UnitState::MOVING;
         }
@@ -71,6 +93,20 @@ void Unit::Update(float deltaTime) {
         
         if (distance > 2.0f) {
             direction = glm::normalize(direction);
+            
+            // Add movement sound effects
+            static float soundTimer = 0.0f;
+            soundTimer += deltaTime;
+            if (soundTimer >= 3.0f) {  // Play sound every 3 seconds during movement
+                if (m_isAllied) {
+                    system("afplay /System/Library/Sounds/Submarine.aiff > /dev/null 2>&1 &");
+                    std::cout << "🔵 Blue unit " << m_id << " maneuvering" << std::endl;
+                } else {
+                    system("afplay /System/Library/Sounds/Morse.aiff > /dev/null 2>&1 &");
+                    std::cout << "🔴 Red unit " << m_id << " repositioning" << std::endl;
+                }
+                soundTimer = 0.0f;
+            }
             
             // Use configurable movement speed or default by type
             float speed = m_movementSpeed;
@@ -85,9 +121,17 @@ void Unit::Update(float deltaTime) {
             
             m_position += direction * speed * deltaTime;
             
+            // CRITICAL: Always clamp actual position to boundaries
+            m_position.x = std::clamp(m_position.x, -30.0f, 30.0f);
+            m_position.z = std::clamp(m_position.z, -30.0f, 30.0f);
+            
             // Add some realistic movement variation
-            m_position.x += sin(behaviorTimer * 2.0f) * 0.5f;
-            m_position.z += cos(behaviorTimer * 1.5f) * 0.3f;
+            m_position.x += sin(behaviorTimer * 2.0f) * 0.3f;
+            m_position.z += cos(behaviorTimer * 1.5f) * 0.2f;
+            
+            // Re-clamp after movement variation
+            m_position.x = std::clamp(m_position.x, -30.0f, 30.0f);
+            m_position.z = std::clamp(m_position.z, -30.0f, 30.0f);
         } else {
             m_position = m_destination;
             m_state = UnitState::IDLE;
@@ -160,6 +204,62 @@ void TS::Unit::SetActiveCommand(const std::string& command, float duration) {
     m_commandFeedbackTimer = duration;
     m_commandExecutionCount++;
     std::cout << "  📋 " << GetTypeString() << " " << m_id << " executing: " << command << std::endl;
+    std::cout << "\a"; // Audio feedback for individual unit
+}
+
+void TS::Unit::CheckEngagement(const std::vector<std::unique_ptr<Unit>>& allUnits, float deltaTime) {
+    if (!IsActive()) return;
+    
+    for (const auto& other : allUnits) {
+        if (!other || !other->IsActive() || other->GetId() == m_id) continue;
+        
+        // Only engage with opposing forces
+        if (other->IsAllied() == m_isAllied) continue;
+        
+        if (IsInEngagementRange(*other)) {
+            // Engagement detected - apply attrition
+            float damage = deltaTime * 8.0f; // Damage per second during engagement
+            TakeDamage(damage);
+            
+            // Audio and visual feedback for engagement (non-blocking)
+            if (m_isAllied) {
+                system("afplay /System/Library/Sounds/Ping.aiff > /dev/null 2>&1 &");
+                std::cout << "🔥 Blue unit " << m_id << " engaged! Health: " 
+                          << (int)(m_health/m_maxHealth*100) << "%" << std::endl;
+            } else {
+                system("afplay /System/Library/Sounds/Pop.aiff > /dev/null 2>&1 &");
+                std::cout << "⚡ Red unit " << m_id << " in contact! Health: " 
+                          << (int)(m_health/m_maxHealth*100) << "%" << std::endl;
+            }
+            
+            // Reduce callsigns and activity when heavily damaged
+            if (m_health < m_maxHealth * 0.3f) {
+                m_movementSpeed *= 0.7f; // Slower movement when damaged
+                if (m_isAllied) {
+                    std::cout << "📻 Blue " << m_id << " - comms degraded, reduced activity" << std::endl;
+                } else {
+                    std::cout << "📻 Red " << m_id << " - effectiveness compromised" << std::endl;
+                }
+            }
+            
+            // Unit elimination (non-blocking audio)
+            if (m_health <= 0) {
+                system("afplay /System/Library/Sounds/Basso.aiff > /dev/null 2>&1 &");
+                if (m_isAllied) {
+                    std::cout << "💀 Blue unit " << m_id << " eliminated" << std::endl;
+                } else {
+                    std::cout << "💀 Red unit " << m_id << " neutralized" << std::endl;
+                }
+            }
+            break; // Only engage with one unit at a time
+        }
+    }
+}
+
+bool TS::Unit::IsInEngagementRange(const Unit& other) const {
+    float engagementRange = 25.0f; // Increased engagement range for better detection
+    float distance = glm::distance(m_position, other.GetPosition());
+    return distance <= engagementRange;
 }
 
 }

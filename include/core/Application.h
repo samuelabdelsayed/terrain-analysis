@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <memory>
 #include <string>
+#include <chrono>
 
 namespace TS {
 
@@ -33,6 +34,10 @@ class Application {
     float m_commandFeedbackTimer;
     int m_commandExecutionCount;
     
+    // Simulation speed control
+    float m_simulationSpeed;
+    std::chrono::steady_clock::time_point m_lastSpeedChange;
+    
 public:
     Application();
     ~Application();
@@ -46,6 +51,7 @@ public:
     void ProcessMouse(double xpos, double ypos);
     void CommandBlueForces(const std::string& command);
     void RenderContoured3DGrid();
+    void PlaySound(const std::string& soundType);
     
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
     static void MouseCallback(GLFWwindow* window, double xpos, double ypos);

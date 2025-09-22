@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <string>
+#include <vector>
+#include <memory>
 
 namespace TS {
 
@@ -44,12 +46,16 @@ public:
     void SetMovementSpeed(float speed);
     void SetActiveCommand(const std::string& command, float duration = 3.0f);
     void TakeDamage(float damage);
+    void CheckEngagement(const std::vector<std::unique_ptr<Unit>>& allUnits, float deltaTime);
+    bool IsInEngagementRange(const Unit& other) const;
     
     int GetId() const { return m_id; }
     UnitType GetType() const { return m_type; }
     bool IsAllied() const { return m_isAllied; }
     const glm::vec3& GetPosition() const { return m_position; }
+    const glm::vec3& GetTargetPosition() const { return m_targetPosition; }
     float GetHealth() const { return m_health; }
+    float GetMaxHealth() const { return m_maxHealth; }
     bool IsActive() const { return m_health > 0.0f; }
     bool HasActiveCommand() const { return m_commandFeedbackTimer > 0.0f; }
     const std::string& GetActiveCommand() const { return m_lastCommand; }
